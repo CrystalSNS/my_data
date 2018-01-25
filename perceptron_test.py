@@ -11,6 +11,7 @@ import pandas as pd
 from random import randint
 from itertools import product
 from matplotlib import pyplot as plt
+from sklearn.metrics import accuracy_score
 
 def read_Xte0():
     return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/testing_set/Xte0.csv', index_col=False, ).as_matrix()
@@ -31,16 +32,13 @@ def read_Xtr2():
     return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Xtr2.csv', index_col=False)
 
 def read_Ytr0():
-    data = pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr0.csv', index_col=False)
-    return data[:,1]
+    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr0.csv', index_col=False)
 
 def read_Ytr1():
-    data = pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr1.csv', index_col=False)
-    return data[:,1]
+    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr1.csv', index_col=False)
 
 def read_Ytr2():
-    data = pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr2.csv', index_col=False)
-    return data[:,1] 
+    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr2.csv', index_col=False)
 
 
 
@@ -77,17 +75,80 @@ def prepare_data(X, num_char):
         for n in col_name:
             df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
                 
-        if (index == 10):
-            break     
+        #if (index == 50):
+        #   break     
     
     return df    
         
     #print(df)
-    
+
+def split_data(df, tr_num):
+    msk = np.random.rand(len(df)) < (tr_num/100)
+    return (df[msk], df[~msk])
+
+
+def perceptron(X, Y):
+
+    w = np.zeros(len(X[0]))
+    eta = 0.05
+    epoch = 1000
+    b=0
+    for t in range(epoch):
+        for i, x in enumerate(X):
+            if ((np.dot(X[i], w)+b)*Y[i]) <= 0:
+                w = w + eta*X[i]*Y[i]
+                b = b + eta*Y[i]
+    return w, b
+
+  
+def test(w, b, X_test):
+    Y_predicted = []
+    for i, x in enumerate(X_test):
+        if(np.dot(X_test[i],w) + b <=0 ):
+            Y_predicted.append(-1)
+        else:
+            Y_predicted.append(1)
+    return Y_predicted
+
+#---------
 
 X = read_Xtr0()
+Y = read_Ytr0()
+Y[Y['Bound'] == 0] = -1
+ 
+for k in range(4):
+    data_new = prepare_data(X, k+1)
 
-result = prepare_data(X,4)
+    data_new['Bound'] = Y['Bound']
+    
+    data_train,  data_test = split_data(data_new, 70)
+    
+    tr_X = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
+    tr_Y = pd.DataFrame.as_matrix(data_train['Bound'])
+    
+    te_X = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
+    te_Y = pd.DataFrame.as_matrix(data_test['Bound'])
+    
+    w, b = perceptron(tr_X, tr_Y)
+    
+    Y_predicted_tr = test(w, b, tr_X)
+    
+    Y_predicted_te = test(w, b, te_X)
+    
+    print("\n \n Result_tr:" 
+          + str(accuracy_score(Y_predicted_tr, tr_Y, normalize=False)) + 
+          "/" + str(len(Y_predicted_tr)) 
+          + "=" + str(accuracy_score(Y_predicted_tr, tr_Y, normalize=False)/len(Y_predicted_tr)))
+    
+    print("\n \n Result_te:" 
+          + str(accuracy_score(Y_predicted_te, te_Y, normalize=False)) + 
+          "/" + str(len(Y_predicted_te))
+          + "=" + str(accuracy_score(Y_predicted_te, te_Y, normalize=False)/len(Y_predicted_te)))
+    
+
+
+
+
 
 
 

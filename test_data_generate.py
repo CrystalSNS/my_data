@@ -39,8 +39,6 @@ def perceptron(X, Y):
                 b = b + eta*Y[i]
     return w,b
 
-#def pegasos(X, Y):
-
   
 def test(w, b, X_test):
     Y_predicted = []
@@ -88,7 +86,7 @@ def main():
     
     Y_predicted = test(w, b, X)
     
-    print("" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
+    print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
           "/" + str(len(Y_predicted)))
 
     #plot_points_test(df_test, Y_predicted)
