@@ -5,11 +5,15 @@ Created on Thu Jan 25 15:42:41 2018
 
 @author: noch
 """
-import numpy as np
+#import numpy as np
 import pandas as pd
 from random import randint
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
+
+from testing import test
+from pegasos import pegasos_
+#from perceptron import perceptron
 
 
 def generate_points(x1,y1,x2,y2,num):
@@ -25,86 +29,6 @@ def generate_points(x1,y1,x2,y2,num):
             y = randint(y2, y2+10)
             df2.loc[i] =[x, y, 1]
     return df1.append(df2)
-            
-def perceptron(X, Y):
-
-    w = np.zeros(len(X[0]))
-    eta = 0.05
-    epoch = 100
-    b=0
-    for t in range(epoch):
-        for i, x in enumerate(X):
-            if (np.dot(X[i], w)*Y[i] + b) <= 0:
-                w = w + eta*X[i]*Y[i]
-                b = b + eta*Y[i]
-    return w,b
-
-def pegasos(X, Y):
-    
-    eta = 0
-    lmda = 0.0005
-    epoch = 1000
-    w = np.zeros(len(X[0]))
-    S_p =  []
-    Y_p =  []
-    b = 0
-
-    for t in range(1,epoch):
-        
-        for i, x in enumerate(X):
-            if ((np.dot(X[i], w) + b)*Y[i]) < 1:
-                S_p.append(X[i])
-                Y_p.append(Y[i])
-                
-        eta = 1/(lmda * t)
-        sm = 0
-        sm_y = 0
-        for idx, row in enumerate(S_p):
-            sm = sm + (S_p[idx]*Y_p[idx])
-            sm_y = sm_y + Y_p[idx]
-        
-        w = np.dot((1 - (lmda*eta)),w) + ((eta/X.shape[0]) * sm)
-        b = (b*(1-(lmda*eta))) + ((eta/X.shape[0])*sm_y)
-        
-    return w, b 
-
-def pegasos_(X, Y, lmda, epoch):
-    
-    eta = 0
-    #lmda = 0.0005
-    #epoch = 1000
-    w = np.zeros(len(X[0]))
-    b = 0
-
-    for t in range(1,epoch):
-        eta = 1/(lmda * t)
-        
-        i = randint(0, X.shape[0]-1)
-        
-        
-        if ((np.dot(X[i], w) + b)*Y[i]) < 1:
-
-            w = np.dot((1 - (lmda*eta)),w) + np.dot((eta*Y[i][0]),X[i])
-            
-            b = (b*(1-(lmda*eta))) + eta*Y[i]
-        
-        elif ((np.dot(X[i], w) + b)*Y[i]) >= 1:    
-            w = np.dot((1 - (lmda*eta)),w)
-            b = b*(1-(lmda*eta))
-        
-        w = min(1,( 1/np.sqrt(lmda) )/ np.linalg.norm(w) ) * w
-        
-    return w, b 
-
-  
-def test(w, b, X_test):
-    Y_predicted = []
-    for i, x in enumerate(X_test):
-        if(np.dot(X_test[i],w) + b <=0 ):
-            Y_predicted.append(-1)
-        else:
-            Y_predicted.append(1)
-    return Y_predicted
     
 def plot_points(data):
     for index, row in data.iterrows():
