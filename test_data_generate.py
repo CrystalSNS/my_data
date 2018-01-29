@@ -39,6 +39,63 @@ def perceptron(X, Y):
                 b = b + eta*Y[i]
     return w,b
 
+def pegasos(X, Y):
+    
+    eta = 0
+    lmda = 0.0005
+    epoch = 1000
+    w = np.zeros(len(X[0]))
+    S_p =  []
+    Y_p =  []
+    b = 0
+
+    for t in range(1,epoch):
+        
+        for i, x in enumerate(X):
+            if ((np.dot(X[i], w) + b)*Y[i]) < 1:
+                S_p.append(X[i])
+                Y_p.append(Y[i])
+                
+        eta = 1/(lmda * t)
+        sm = 0
+        sm_y = 0
+        for idx, row in enumerate(S_p):
+            sm = sm + (S_p[idx]*Y_p[idx])
+            sm_y = sm_y + Y_p[idx]
+        
+        w = np.dot((1 - (lmda*eta)),w) + ((eta/X.shape[0]) * sm)
+        b = (b*(1-(lmda*eta))) + ((eta/X.shape[0])*sm_y)
+        
+    return w, b 
+
+def pegasos_(X, Y, lmda, epoch):
+    
+    eta = 0
+    #lmda = 0.0005
+    #epoch = 1000
+    w = np.zeros(len(X[0]))
+    b = 0
+
+    for t in range(1,epoch):
+        eta = 1/(lmda * t)
+        
+        i = randint(0, X.shape[0]-1)
+        
+        
+        if ((np.dot(X[i], w) + b)*Y[i]) < 1:
+
+            w = np.dot((1 - (lmda*eta)),w) + np.dot((eta*Y[i][0]),X[i])
+            
+            b = (b*(1-(lmda*eta))) + eta*Y[i]
+        
+        elif ((np.dot(X[i], w) + b)*Y[i]) >= 1:    
+            w = np.dot((1 - (lmda*eta)),w)
+            b = b*(1-(lmda*eta))
+        
+        w = min(1,( 1/np.sqrt(lmda) )/ np.linalg.norm(w) ) * w
+        
+    return w, b 
+
   
 def test(w, b, X_test):
     Y_predicted = []
@@ -75,14 +132,15 @@ def plot_points_test(data_test,Y_predicted):
             
             
 def main():
-    df = generate_points(-5, -5, 5, 5, 20)
+    df = generate_points(-4, -4, 4, 4, 20)
     df = df.sample(frac=1).reset_index(drop=True)
     X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
     Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
     
     plot_points(df)
     
-    w, b = perceptron(X, Y)
+    #w, b = perceptron(X, Y)
+    w, b = pegasos_(X, Y,0.005,1000) 
     
     Y_predicted = test(w, b, X)
     

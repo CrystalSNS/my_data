@@ -13,34 +13,17 @@ from itertools import product
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 
-def read_Xte0():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/testing_set/Xte0.csv', index_col=False)
 
-def read_Xte1():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/testing_set/Xte1.csv', index_col=False)
-
-def read_Xte2():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/testing_set/Xte2.csv', index_col=False)
-
-def read_Xtr0():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Xtr0.csv', index_col=False)
-
-def read_Xtr1():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Xtr1.csv', index_col=False)
-
-def read_Xtr2():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Xtr2.csv', index_col=False)
-
-def read_Ytr0():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr0.csv', index_col=False)
-
-def read_Ytr1():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr1.csv', index_col=False)
-
-def read_Ytr2():
-    return pd.read_csv('/Users/noch/Documents/workspace/data_challenge/dataset/training_set/Ytr2.csv', index_col=False)
-
-
+def read_data(st, isTr):
+    sbroot = "testing_set/"
+    if(isTr): 
+        sbroot = "training_set/"
+    root = "/Users/noch/Documents/workspace/data_challenge/dataset/" + sbroot
+    data = 0
+    st = st+".csv"
+    data =  pd.read_csv(root+st, index_col=False)
+    
+    return data
 
 def creat_col_name(r):
     permu = product("ATGC", repeat = r)
@@ -74,8 +57,8 @@ def prepare_data(X, num_char):
         for n in col_name:
             df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
         
-        #if (index == 1):
-        #   break     
+        #if (index == 2):
+        #  break     
     
     return df    
         
@@ -99,27 +82,64 @@ def perceptron(X, Y):
                 b = b + eta*Y[i]
     return w, b
 
-def pegasos(X, Y,lmda=5):
+def pegasos(X, Y):
     
     eta = 0
+    lmda = 0.0005
     epoch = 1000
     w = np.zeros(len(X[0]))
     S_p =  []
     Y_p =  []
-    for t in range(epoch):
+    b = 0
+
+    for t in range(1,epoch):
         
         for i, x in enumerate(X):
-            if ((np.dot(X[i], w))*Y[i]) < 1:
-                S_p[i] = X[i]
-                Y_p[i] = Y[i]
+            if ((np.dot(X[i], w) + b)*Y[i]) < 1:
+                S_p.append(X[i])
+                Y_p.append(Y[i])
                 
         eta = 1/(lmda * t)
         sm = 0
-        
+        sm_y = 0
         for idx, row in enumerate(S_p):
             sm = sm + (S_p[idx]*Y_p[idx])
+            sm_y = sm_y + Y_p[idx]
         
         w = np.dot((1 - (lmda*eta)),w) + ((eta/X.shape[0]) * sm)
+        b = (b*(1-(lmda*eta))) + ((eta/X.shape[0])*sm_y)
+        
+    return w, b 
+
+
+def pegasos_(X, Y, lmda, epoch):
+    
+    eta = 0
+    #lmda = 0.0005
+    #epoch = 1000
+    w = np.zeros(len(X[0]))
+    b = 0
+
+    for t in range(1,epoch):
+        eta = 1/(lmda * t)
+        
+        i = randint(0, X.shape[0]-1)
+        
+        
+        if ((np.dot(X[i], w) + b)*Y[i]) < 1:
+
+            w = np.dot((1 - (lmda*eta)),w) + np.dot((eta*Y[i]),X[i])
+            
+            b = (b*(1-(lmda*eta))) + eta*Y[i]
+        
+        elif ((np.dot(X[i], w) + b)*Y[i]) >= 1:    
+            w = np.dot((1 - (lmda*eta)),w)
+            b = b*(1-(lmda*eta))
+        
+        if(np.linalg.norm(w) != 0):
+            w = min(1,( 1/np.sqrt(lmda) )/ np.linalg.norm(w) ) * w
+        
+    return w, b 
 
   
 def test(w, b, X_test):
@@ -146,88 +166,168 @@ def test_with_id(w, b, X):
 
     return result
 
+'''
 
+#---------
+isTr = 0
+
+b = [-0.250000625002, -0.200000666669, -0.200000400001]
+num_char = [6, 6, 5]
+       
+f= open("/Users/noch/Documents/workspace/data_challenge/result/Yte_pegasos_6_5.csv","a+")       
+
+for i in range (3) :
+    
+    Xte = read_data("Xte"+str(i), isTr)
+    Xte['Id'] = pd.DataFrame({'Id':range(i*1000,(i+1) * 1000)})
+    Xte_p = prepare_data(pd.DataFrame(Xte['DNA']), num_char[i])
+    Xte_p['Id'] = Xte['Id']
+
+    w = pd.read_csv("/Users/noch/Documents/workspace/data_challenge/result/w_" + str(i) + ".txt", index_col=False).as_matrix()
+    
+
+    result = test_with_id(w, b[i], Xte_p)
+    
+    s = ""
+    
+    for index, row in result.iterrows():
+        
+        s = s + str(int(row['Id'])) + "," + str(int(row['Bound'])) + "\n"
+    
+    f.write(s)
+    
+f.close()
 
 #---------
 #s = "Id,Bound\n"
 
-Xtr = read_Xtr2()
-Ytr = read_Ytr2()
-Ytr['Bound'][Ytr['Bound'] == 0] = -1
+f= open("/Users/noch/Documents/workspace/data_challenge/result/Yte_pegasos_5.csv","a+")       
+nm_char = [5, 5, 5]
+lmda = [10**(-5), 10**(-5), 10**(-5)]
+epoch = [400000, 400000, 400000]
 
-Xte = read_Xte2()
 
-Xte['Id'] = pd.DataFrame({'Id':range(2000,3000)})
-
-#for k in range(4):
+for i in range (3) :
+    isTr = 1
+    Xtr = read_data("Xtr"+str(i), isTr)
+    Ytr = read_data("Ytr"+str(i), isTr)
+    Ytr['Bound'][Ytr['Bound'] == 0] = -1
     
-Xtr_p = prepare_data(Xtr, 5)
-Xtr_p['Bound'] = Ytr['Bound']
-
-Xte_p = prepare_data(pd.DataFrame(Xte['DNA']), 5)
-Xte_p['Id'] = Xte['Id']
-
-
-#shuffle testing set
-Xtr_p = Xtr_p.sample(frac=1)
-
-tr_X = pd.DataFrame.as_matrix(Xtr_p.iloc[:,:-1])
-tr_Y = pd.DataFrame.as_matrix(Xtr_p['Bound'])
-w, b = perceptron(tr_X, tr_Y)
-
-result = test_with_id(w, b, Xte_p)
-#result = result.sort_values(by=['Id']).reset_index(drop=True)
-s = ""
-for index, row in result.iterrows():
+    isTr = 0
+    Xte = read_data("Xte"+str(i), isTr)
+    Xte['Id'] = pd.DataFrame({'Id':range(i*1000, (i+1) * 1000)})
     
-    s = s + str(int(row['Id'])) + "," + str(int(row['Bound'])) + "\n"
-
-f= open("/Users/noch/Documents/workspace/data_challenge/result/Yte_perctr_5.csv","a+")       
-f.write(s)
+    #for k in range(4):
+        
+    Xtr_p = prepare_data(Xtr, nm_char[i])
+    Xtr_p['Bound'] = Ytr['Bound']
+    
+    Xte_p = prepare_data(pd.DataFrame(Xte['DNA']), nm_char[i])
+    Xte_p['Id'] = Xte['Id']
+    
+    
+    #shuffle testing set
+    Xtr_p = Xtr_p.sample(frac=1)
+    
+    tr_X = pd.DataFrame.as_matrix(Xtr_p.iloc[:,:-1])
+    tr_Y = pd.DataFrame.as_matrix(Xtr_p['Bound'])
+    
+    #w, b = perceptron(tr_X, tr_Y)
+    w, b = pegasos_(tr_X, tr_Y, lmda[i], epoch[i])
+    
+    result = test_with_id(w, b, Xte_p)
+    #result = result.sort_values(by=['Id']).reset_index(drop=True)
+    s = ""
+    for index, row in result.iterrows():
+        
+        s = s + str(int(row['Id'])) + "," + str(int(row['Bound'])) + "\n"
+    f.write(s)
+    
 f.close()
 
 '''
-
 #---------
-
-X = read_Xtr1()
-Y = read_Ytr1()
-Y['Bound'][Y['Bound'] == 0] = -1
- 
- 
-#for k in range(4):
+isTr = 1
+for i in range (3) :
     
-data_new = prepare_data(X, 5)
-
-data_new['Bound'] = Y['Bound']
-
-data_train,  data_test = split_data(data_new, 70)
-
-tr_X = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
-tr_Y = pd.DataFrame.as_matrix(data_train['Bound'])
-
-te_X = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
-te_Y = pd.DataFrame.as_matrix(data_test['Bound'])
-
-w, b = perceptron(tr_X, tr_Y)
-
-Y_predicted_tr = test(w, b, tr_X)
-
-Y_predicted_te = test(w, b, te_X)
-
-print("Number of character:" + str(5))
-
-print("\n Result_tr:" 
-      + str(accuracy_score(Y_predicted_tr, tr_Y, normalize=False)) + 
-      "/" + str(len(Y_predicted_tr)) 
-      + "=" + str(accuracy_score(Y_predicted_tr, tr_Y, normalize=False)/len(Y_predicted_tr)))
-
-print("\n Result_te:" 
-      + str(accuracy_score(Y_predicted_te, te_Y, normalize=False)) + 
-      "/" + str(len(Y_predicted_te))
-      + "=" + str(accuracy_score(Y_predicted_te, te_Y, normalize=False)/len(Y_predicted_te))+"\n\n")
     
-'''
+    X = read_data("Xtr"+str(i), isTr)
+    Y = read_data("Ytr"+str(i), isTr)
+    max_info = ""
+    max_predic = 0
+    #max_w = []
+    
+    
+    Y['Bound'][Y['Bound'] == 0] = -1
+     
+     
+    print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
+    
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_pegasos.txt","a+")       
+#    for k in range(3,6):
+    k = 3
+    
+    data_4 = prepare_data(X, k+1)
+    data_5 = prepare_data(X, k+2) 
+    data_6 = prepare_data(X, k+3)
+    
+    #concate dataframes with the same # of rows
+    data_new = pd.concat([data_4, data_5, data_6], axis=1)
+    
+    data_new['Bound'] = Y['Bound']
+    
+    data_train,  data_test = split_data(data_new, 70)
+    
+    tr_X = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
+    tr_Y = pd.DataFrame.as_matrix(data_train['Bound'])
+    
+    te_X = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
+    te_Y = pd.DataFrame.as_matrix(data_test['Bound'])
+    
+#    w, b = perceptron(tr_X, tr_Y)
+    
+    for ep in range(100000,600000,100000):
+        for j in range(4,8):
+            
+            lmd=10**(-j)
+            
+            w, b = pegasos_(tr_X, tr_Y, lmd, ep)
+            
+            Y_predicted_tr = test(w, b, tr_X)
+            
+            Y_predicted_te = test(w, b, te_X)
+            
+            
+            predicted_score_tr = accuracy_score(Y_predicted_tr, tr_Y, normalize=False)/len(Y_predicted_tr)
+            predicted_score_te = accuracy_score(Y_predicted_te, te_Y, normalize=False)/len(Y_predicted_te)
+            
+            st_info = "\n test on Xtr" +str(i)+ ", Ytr" +str(i)+ "\n epoch: " + str(ep) + "\n lamda: " +str(lmd) + "\n number of character: " + str(k+1)
+            
+            if(predicted_score_te > max_predic):
+                max_predic = predicted_score_te
+                max_info = "\n max_result_tr: "+ str(predicted_score_tr) + st_info + "\n value of b: " + str(b) + "\n"
+                #max_w = np.asarray(w)
+            
+            f.write("---------------------------------------")
+            f.write(st_info)
+            
+            f.write("\n result_tr: " 
+                  + str(accuracy_score(Y_predicted_tr, tr_Y, normalize=False)) + 
+                  "/" + str(len(Y_predicted_tr)) 
+                  + " = " + str(predicted_score_tr))
+            
+            f.write("\n result_te: " 
+                  + str(accuracy_score(Y_predicted_te, te_Y, normalize=False)) + 
+                  "/" + str(len(Y_predicted_te))
+                  + " = " + str(predicted_score_te)+"\n\n")
+f.write("****************************************************************************************************************")
+f.write("\n max_result_te: " + str(max_predic))
+f.write(max_info)
+#np.savetxt("/Users/noch/Documents/workspace/data_challenge/result/w_" + str(i) + ".txt", max_w)
+    
+f.close()
+
+#'''
 
 
 
