@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 
 from testing import test
-from pegasos import pegasos_
+from pegasos import pegasos_ker, pegasos_
 #from perceptron import perceptron
 
 
@@ -31,6 +31,7 @@ def generate_points(x1,y1,x2,y2,num):
     return df1.append(df2)
     
 def plot_points(data):
+    
     for index, row in data.iterrows():
         # Plot the negative samples
         if row['class'] == -1:
@@ -40,6 +41,7 @@ def plot_points(data):
             plt.scatter(row['x'], row['y'], s=120, marker='+', linewidths=2, color='blue')
 
 def plot_points_test(data_test,Y_predicted):
+    
     for index, row in data_test.iterrows():
         # Plot the negative samples
         if (row['class'] == -1 and row['class'] == Y_predicted[index]) :
@@ -55,27 +57,27 @@ def plot_points_test(data_test,Y_predicted):
             plt.scatter(row['x'], row['y'], s=120, marker='+', linewidths=2, color='red') 
             
             
-def main():
-    df = generate_points(-4, -4, 4, 4, 20)
-    df = df.sample(frac=1).reset_index(drop=True)
-    X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
-    Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
-    
-    plot_points(df)
-    
-    #w, b = perceptron(X, Y)
-    w, b = pegasos_(X, Y,0.005,1000) 
-    
-    Y_predicted = test(w, b, X)
-    
-    print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
-          "/" + str(len(Y_predicted)))
+df = generate_points(-4, -4, 4, 4, 20)
+df = df.sample(frac=1).reset_index(drop=True)
+X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
+#Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
+Y = pd.DataFrame.as_matrix(df['class'])
 
-    #plot_points_test(df_test, Y_predicted)
-    
-    #plt.plot([-1,np.dot(-1, w)],[1,np.dot(1, w)])
+plot_points(df)
 
-main()
+#w, b = perceptron(X, Y)
+#w, b = pegasos_(X, Y,0.005,1000) 
+w = pegasos_ker(X, Y,0.005,10000) 
+
+Y_predicted = test(w, 0, X)
+
+print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
+      "/" + str(len(Y_predicted)))
+
+#plot_points_test(df_test, Y_predicted)
+
+#plt.plot([-1,np.dot(-1, w)],[1,np.dot(1, w)])
+
 
 
 

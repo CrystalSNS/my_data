@@ -7,12 +7,13 @@ Created on Wed Jan 24 16:55:40 2018
 """
 
 import pandas as pd
+import numpy as np
 from sklearn.metrics import accuracy_score
 
-from testing import test_with_id, test
-from pegasos import pegasos_
+from data_prepared import read_data, prepare_data, prepare_data_bi, split_data
+from pegasos import pegasos_, pegasos_ker
 #from perceptron import perceptron
-from data_prepare import read_data, prepare_data, split_data
+from testing import test_with_id, test
 
 
 '''
@@ -110,18 +111,21 @@ for i in range (3) :
     Y['Bound'][Y['Bound'] == 0] = -1
      
      
+    
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_pegasos_1.txt","a+")       
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_pegasos.txt","a+")       
-#    for k in range(3,6):
-    k = 3
-    
-    data_4 = prepare_data(X, k+1)
-    data_5 = prepare_data(X, k+2) 
-    data_6 = prepare_data(X, k+3)
+    #for k in range(2,6):
+    k = 1
+
+    #data_4 = prepare_data_bi(X, k+1)
+    #data_5 = prepare_data_bi(X, k+2) 
+    #data_6 = prepare_data_bi(X, k+3)
     
     #concate dataframes with the same # of rows
-    data_new = pd.concat([data_4, data_5, data_6], axis=1)
+    #data_new = pd.concat([data_4, data_5, data_6], axis=1)
+    
+    data_new = prepare_data_bi(X, k+1)
     
     data_new['Bound'] = Y['Bound']
     
@@ -135,17 +139,20 @@ for i in range (3) :
     
 #    w, b = perceptron(tr_X, tr_Y)
     
+    print("number of char:" + str(k+1))
+    
     for ep in range(100000,600000,100000):
         for j in range(4,8):
             
             lmd=10**(-j)
             
-            w, b = pegasos_(tr_X, tr_Y, lmd, ep)
+            w, b = pegasos_(tr_X, tr_Y, lmd, ep) 
+            #w = pegasos_ker(tr_X, tr_Y, lmd, ep)
+            print("Yest")
             
             Y_predicted_tr = test(w, b, tr_X)
             
             Y_predicted_te = test(w, b, te_X)
-            
             
             predicted_score_tr = accuracy_score(Y_predicted_tr, tr_Y, normalize=False)/len(Y_predicted_tr)
             predicted_score_te = accuracy_score(Y_predicted_te, te_Y, normalize=False)/len(Y_predicted_te)
