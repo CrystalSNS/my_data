@@ -11,7 +11,7 @@ from random import randint
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
 
-from testing import test
+from testing import test, test_ker
 from pegasos import pegasos_ker, pegasos_
 #from perceptron import perceptron
 
@@ -57,7 +57,7 @@ def plot_points_test(data_test,Y_predicted):
             plt.scatter(row['x'], row['y'], s=120, marker='+', linewidths=2, color='red') 
             
             
-df = generate_points(-4, -4, 4, 4, 20)
+df = generate_points(10, 10, 40, 40, 20)
 df = df.sample(frac=1).reset_index(drop=True)
 X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
 #Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
@@ -67,9 +67,10 @@ plot_points(df)
 
 #w, b = perceptron(X, Y)
 #w, b = pegasos_(X, Y,0.005,1000) 
-w = pegasos_ker(X, Y,0.005,10000) 
+alpha = pegasos_ker(X, Y,0.005,1000) 
 
-Y_predicted = test(w, 0, X)
+#Y_predicted = test(w, b, X)
+Y_predicted = test_ker(X, Y, X, alpha)
 
 print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
       "/" + str(len(Y_predicted)))
