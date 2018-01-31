@@ -63,7 +63,7 @@ df = generate_points(-3, -3, 3, 3, 20)
 df = df.sample(frac=1).reset_index(drop=True)
 X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
 #Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
-Y = pd.DataFrame.as_matrix(df['class']).tolist()
+Y = pd.DataFrame.as_matrix(df['class']).astype(float).tolist()
 
 plot_points(df)
 

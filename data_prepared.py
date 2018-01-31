@@ -14,6 +14,7 @@ def read_data(st, isTr):
     if(isTr): 
         sbroot = "training_set/"
     root = "/Users/noch/Documents/workspace/data_challenge/dataset/" + sbroot
+    #root = "home/jibril/Desktop/data_challenge/dataset/" + sbroot
     data = 0
     st = st+".csv"
     data =  pd.read_csv(root+st, index_col=False)
