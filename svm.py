@@ -38,7 +38,7 @@ def svm_f(X_tr, Y_tr, C):
     h2 = C*np.ones((n_examples,1))
     G = cvxopt.matrix(np.vstack((G1,G2)))
     h = cvxopt.matrix(np.vstack((h1,h2)))
-    
+    cvxopt.solvers.options['show_progress'] = False
     sol = cvxopt.solvers.qp(P,q,G,h,A,b)
     
     alphas = np.ravel(sol['x'])
@@ -49,8 +49,12 @@ def svm_f(X_tr, Y_tr, C):
         w = w + alphas[i] * Y_tr[i] * X_tr[i]
     
     bias = 0
+    nb_bias = 0
     for i in range(n_examples):
         if (alphas[i]> C/10000 and alphas[i]+C/1000 < C):
-            bias = Y_tr[i] - np.dot(X_tr[i], w)
+            bias = bias + Y_tr[i] - np.dot(X_tr[i], w)
+            nb_bias = nb_bias + 1
+    if nb_bias != 0:
+        bias = bias/nb_bias
     return w, bias
     

@@ -24,7 +24,7 @@ for i in range (3) :
     Y['Bound'][Y['Bound'] == 0] = -1
      
     f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_5.txt","a+")       
-    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm","a+")   
+    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm.txt","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
     for k in range(2,6):
