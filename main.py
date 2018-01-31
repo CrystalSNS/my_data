@@ -92,7 +92,9 @@ for i in range (3) :
     result = test_with_id(w, b, Xte_p)
     #result = result.sort_values(by=['Id']).reset_index(drop=True)
     
+    result['Bound'][result['Bound'] == -1] = 0
     s = ""
+    
     for index, row in result.iterrows():
         s = s + str(int(row['Id'])) + "," + str(int(row['Bound'])) + "\n"
     f.write(s)
@@ -160,6 +162,7 @@ for i in range (3) :
             #Y_predicted_te = test(w, b, X_te)
         '''    
         for j in range (5):
+
             
             C = 10**(-j)
 
@@ -196,8 +199,8 @@ for i in range (3) :
     f.write(max_info)
     #np.savetxt("/Users/noch/Documents/workspace/data_challenge/result/w_" + str(i) + ".txt", max_w)
         
-f.close()
-#'''
+    f.close()
+    #'''
 
 
 

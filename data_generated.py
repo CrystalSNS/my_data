@@ -61,6 +61,7 @@ def plot_points_test(data_test,Y_predicted):
             
 df = generate_points(-3, -3, 3, 3, 20)
 df = df.sample(frac=1).reset_index(drop=True)
+
 X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
 #Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
 Y = pd.DataFrame.as_matrix(df['class']).astype(float).tolist()
@@ -71,7 +72,7 @@ plot_points(df)
 #w, b = pegasos_(X, Y,0.005,1000) 
 #alpha = pegasos_ker(X, Y,0.005,1000) 
 for j in range (4):
-                
+    print(j)     
     C = 10**(-j)
     w, b = svm_f(X, Y, C)
 
