@@ -48,14 +48,16 @@ for i in range (3) :
     f.write(s)
     
 f.close()
-
+'''
+'''
 #---------
 #s = "Id,Bound\n"
 
-f= open("/Users/noch/Documents/workspace/data_challenge/result/Yte_pegasos_5.csv","a+")       
+f= open("/Users/noch/Documents/workspace/data_challenge/result/Yte_svm.csv","a+")       
 nm_char = [5, 5, 5]
-lmda = [10**(-5), 10**(-5), 10**(-5)]
-epoch = [400000, 400000, 400000]
+lmda = [10**(-1), 10**(-1), 10**(-1)]
+#lmda = [10**(-5), 10**(-5), 10**(-5)]
+#epoch = [400000, 400000, 400000]
 
 
 for i in range (3) :
@@ -81,16 +83,17 @@ for i in range (3) :
     Xtr_p = Xtr_p.sample(frac=1)
     
     X_tr = pd.DataFrame.as_matrix(Xtr_p.iloc[:,:-1])
-    Y_tr = pd.DataFrame.as_matrix(Xtr_p['Bound'])
+    Y_tr = pd.DataFrame.as_matrix(Xtr_p['Bound']).astype(float).tolist()
     
     #w, b = perceptron(X_tr, Y_tr)
-    w, b = pegasos_(X_tr, Y_tr, lmda[i], epoch[i])
+    #w, b = pegasos_(X_tr, Y_tr, lmda[i], epoch[i])
+    w, b = svm_f(X_tr, Y_tr, C)
     
     result = test_with_id(w, b, Xte_p)
     #result = result.sort_values(by=['Id']).reset_index(drop=True)
+    
     s = ""
     for index, row in result.iterrows():
-        
         s = s + str(int(row['Id'])) + "," + str(int(row['Bound'])) + "\n"
     f.write(s)
     
@@ -110,11 +113,12 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_" + str(datetime.now()) + ".txt","a+")       
-    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm_" + str(datetime.now()) + ".txt","a+")       
+    #f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_xtr_" + str(i) + "_" + str(datetime.now()) + ".txt","a+")       
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm.txt","a+")       
+    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
-    for k in range(4,6):
+    for k in range(2,6):
         #k = 1
     
         #data_4 = prepare_data_bi(X, k+1)
@@ -141,64 +145,58 @@ for i in range (3) :
         
         print("number of char:" + str(k+1))
         
-        for ep in range(100000,600000,100000):
-            '''
-            for j in range(5,7):
-                
-                lmd = 10**(-j)
-                
-                #w, b = pegasos_(X_tr, Y_tr, lmd, ep) 
-                alpha = pegasos_ker(X_tr, Y_tr, lmd, ep)
-                
-                b = 0
-                Y_predicted_tr = test_ker(X_tr, Y_tr, X_tr, alpha)
-                Y_predicted_te = test_ker(X_tr, Y_tr, X_te, alpha)
-                
-                #Y_predicted_tr = test(w, b, X_tr)
-                #Y_predicted_te = test(w, b, X_te)
-                '''
-            for j in range (5):
-                
-                C = 10**(-j)
-                
-                
-                
-                w, b = svm_f(X_tr, Y_tr, C) 
-                print("Yes")
-                break
-                Y_predicted_tr = test(w, b, X_tr)
-                Y_predicted_te = test(w, b, X_te)
-                
-                predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
-                predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
-                
-                #st_info = "\n test on Xtr" +str(i)+ ", Ytr" +str(i)+ "\n epoch: " + str(ep) + "\n lamda: " +str(lmd) + "\n number of character: " + str(k+1)
-                st_info = "\n test on Xtr" +str(i)+ ", Ytr" +str(i)+ "\n epoch: " + str(ep) + "\n C: " +str(C) + "\n number of character: " + str(k+1)
-                 
-                if(predicted_score_te > max_predic):
-                    max_predic = predicted_score_te
-                    max_info = "\n max_result_tr: "+ str(predicted_score_tr) + st_info + "\n value of b: " + str(b) + "\n"
-                    #max_w = np.asarray(w)
-                
-                f.write("---------------------------------------")
-                f.write(st_info)
-                
-                f.write("\n result_tr: " 
-                      + str(accuracy_score(Y_predicted_tr, Y_tr, normalize=False)) + 
-                      "/" + str(len(Y_predicted_tr)) 
-                      + " = " + str(predicted_score_tr))
-                
-                f.write("\n result_te: " 
-                      + str(accuracy_score(Y_predicted_te, Y_te, normalize=False)) + 
-                      "/" + str(len(Y_predicted_te))
-                      + " = " + str(predicted_score_te)+"\n\n")
+        #for ep in range(100000,600000,100000):
+        '''
+        for j in range(5,7):
+            lmd = 10**(-j)
+            #w, b = pegasos_(X_tr, Y_tr, lmd, ep) 
+            alpha = pegasos_ker(X_tr, Y_tr, lmd, ep)
+            
+            b = 0
+            Y_predicted_tr = test_ker(X_tr, Y_tr, X_tr, alpha)
+            Y_predicted_te = test_ker(X_tr, Y_tr, X_te, alpha)
+            
+            #Y_predicted_tr = test(w, b, X_tr)
+            #Y_predicted_te = test(w, b, X_te)
+        '''    
+        for j in range (5):
+            
+            C = 10**(-j)
+
+            w, b = svm_f(X_tr, Y_tr, C) 
+
+            Y_predicted_tr = test(w, b, X_tr)
+            Y_predicted_te = test(w, b, X_te)
+            
+            predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
+            predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
+            
+            #st_info = "\n test on Xtr" +str(i)+ ", Ytr" +str(i)+ "\n epoch: " + str(ep) + "\n lamda: " +str(lmd) + "\n number of character: " + str(k+1)
+            st_info = "\n test on Xtr" +str(i)+ ", Ytr" +str(i)+ "\n C: " +str(C) + "\n number of character: " + str(k+1)
+             
+            if(predicted_score_te > max_predic):
+                max_predic = predicted_score_te
+                max_info = "\n max_result_tr: "+ str(predicted_score_tr) + st_info + "\n value of b: " + str(b) + "\n"
+                #max_w = np.asarray(w)
+            
+            f.write("---------------------------------------")
+            f.write(st_info)
+            
+            f.write("\n result_tr: " 
+                  + str(accuracy_score(Y_predicted_tr, Y_tr, normalize=False)) + 
+                  "/" + str(len(Y_predicted_tr)) 
+                  + " = " + str(predicted_score_tr))
+            
+            f.write("\n result_te: " 
+                  + str(accuracy_score(Y_predicted_te, Y_te, normalize=False)) + 
+                  "/" + str(len(Y_predicted_te))
+                  + " = " + str(predicted_score_te)+"\n\n")
     f.write("****************************************************************************************************************")
     f.write("\n max_result_te: " + str(max_predic))
     f.write(max_info)
     #np.savetxt("/Users/noch/Documents/workspace/data_challenge/result/w_" + str(i) + ".txt", max_w)
         
-    f.close()
-
+f.close()
 #'''
 
 

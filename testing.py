@@ -23,14 +23,13 @@ def test(w, b, X_test):
 
 def test_with_id(w, b, X):
     
-    X = np.c_[ X, np.ones(X.shape[0])]
+    #X = np.c_[ X, np.ones(X.shape[0])]
     result = pd.DataFrame(columns = ['Id','Bound'])
     X_test = pd.DataFrame.as_matrix(X.loc[:, X.columns != 'Id'])
     X_te_id = pd.DataFrame.as_matrix(X.loc[:,'Id'])
     
     for i, x in enumerate(X_test):
-        #l = np.dot(X_test[i],w) + b
-        l = (np.dot(X_test[i],w) + 1)**2  
+        l = np.dot(X_test[i],w) + b
         result.loc[i] = 0
         if l <=0 :
             result.loc[i]['Id'] = X_te_id[i]
