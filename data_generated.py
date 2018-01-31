@@ -7,6 +7,7 @@ Created on Thu Jan 25 15:42:41 2018
 """
 #import numpy as np
 import pandas as pd
+import numpy as np
 from random import randint
 from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -14,6 +15,7 @@ from sklearn.metrics import accuracy_score
 from testing import test, test_ker
 from pegasos import pegasos_ker, pegasos_
 #from perceptron import perceptron
+from svm import svm_f
 
 
 def generate_points(x1,y1,x2,y2,num):
@@ -57,23 +59,27 @@ def plot_points_test(data_test,Y_predicted):
             plt.scatter(row['x'], row['y'], s=120, marker='+', linewidths=2, color='red') 
             
             
-df = generate_points(10, 10, 40, 40, 20)
+df = generate_points(-3, -3, 3, 3, 20)
 df = df.sample(frac=1).reset_index(drop=True)
 X = pd.DataFrame.as_matrix(df.iloc[:,0:2])
 #Y = pd.DataFrame.as_matrix(df.iloc[:,2:3])
-Y = pd.DataFrame.as_matrix(df['class'])
+Y = pd.DataFrame.as_matrix(df['class']).tolist()
 
 plot_points(df)
 
 #w, b = perceptron(X, Y)
 #w, b = pegasos_(X, Y,0.005,1000) 
-alpha = pegasos_ker(X, Y,0.005,1000) 
+#alpha = pegasos_ker(X, Y,0.005,1000) 
+for j in range (4):
+                
+    C = 10**(-j)
+    w, b = svm_f(X, Y, C)
 
-#Y_predicted = test(w, b, X)
-Y_predicted = test_ker(X, Y, X, alpha)
+    Y_predicted = test(w, b, X)
+#Y_predicted = test_ker(X, Y, X, alpha)
 
-print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
-      "/" + str(len(Y_predicted)))
+    print("\n \n Result:" + str(accuracy_score(Y_predicted, Y, normalize=False)) + 
+      "/" + str(len(Y_predicted)) + "\n C: " + str(C))
 
 #plot_points_test(df_test, Y_predicted)
 

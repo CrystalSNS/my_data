@@ -10,7 +10,7 @@ import pandas as pd
 
 def test(w, b, X_test):
     
-    X_test = np.c_[ X_test, np.ones(X_test.shape[0])]
+    #X_test = np.c_[ X_test, np.ones(X_test.shape[0])]
     Y_predicted = []
     
     for i, x in enumerate(X_test):
