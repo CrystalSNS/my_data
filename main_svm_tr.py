@@ -10,8 +10,9 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 
 from data_prepared import read_data, prepare_data, split_data
-from testing import test
-from svm import svm_f
+from testing import test_ker
+#from svm import svm_f
+from  svm_smo import smo_f
 
 
 isTr = 1
@@ -23,7 +24,7 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_5.txt","a+")       
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_div.txt","a+")       
     #f= open("/home/jibril/Desktop/data_challenge/result/console_svm.txt","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
@@ -45,13 +46,15 @@ for i in range (3) :
         print("\n finished preparing number of char:" + str(k+1))
             
         C_arr = [1.5, 1, 0.1, 0.5, 0.01, 0.05, 0.001]
+        #C_arr = [0.01]
         
         for C in C_arr:
             
-            w, b = svm_f(X_tr, Y_tr, C) 
+            #w, b = svm_f(X_tr, Y_tr, C) 
+            alpha, b = smo_f(X_tr, Y_tr, 1000, 1e-4, C)
     
-            Y_predicted_tr = test(w, b, X_tr)
-            Y_predicted_te = test(w, b, X_te)
+            Y_predicted_tr = test_ker(X_tr, Y_tr, X_tr, alpha, b)
+            Y_predicted_te = test_ker(X_tr, Y_tr, X_te, alpha, b)
             
             predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
             predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
@@ -78,9 +81,8 @@ for i in range (3) :
     f.write("****************************************************************************************************************")
     f.write("\n max_result_te: " + str(max_predic))
     f.write(max_info + "\n\n")
-    print("\n finished prediction for number of char:" + str(k+1))       
     f.close()
-    
+    break
 
 
 

@@ -63,16 +63,18 @@ def test_ker_id(X_tr, Y_tr, X_te, alpha):
     return result
 
 
-def test_ker(X_tr, Y_tr, X_te, alpha):
+def test_ker(X_tr, Y_tr, X_te, alpha, b):
     
-    X_train = np.c_[X_tr, np.ones(X_tr.shape[0])]#add bias column of 1 to X_train
-    X_test = np.c_[X_te, np.ones(X_te.shape[0])]#add bias column of 1 to X_test
+    #X_train = np.c_[X_tr, np.ones(X_tr.shape[0])]#add bias column of 1 to X_train
+    #X_test = np.c_[X_te, np.ones(X_te.shape[0])]#add bias column of 1 to X_test
+    X_train = X_tr
+    X_test = X_te
     Y_predicted = []
     
-    for idx, x in enumerate(X_test):
+    for i, x_i in enumerate(X_test):
         sm = 0
-        for i, q in enumerate(X_train):
-            sm = sm + ((np.dot(x, q) + 1)**2)*Y_tr[i]*alpha[i]
+        for j, x_j in enumerate(X_train):
+            sm = sm + (alpha[j] * Y_tr[j] * np.dot(x_j, x_i)) + b
         if sm <=0 :
             Y_predicted.append(-1)
         else:
