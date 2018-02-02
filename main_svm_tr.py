@@ -25,11 +25,11 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_ker_gaussi.txt","a+")       
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_ker_gaussi_C_big.txt","a+")       
     #f= open("/home/jibril/Desktop/data_challenge/result/console_svm.txt","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
-    for k in range(2,6):
+    for k in range(2,7):
         
         data_new = prepare_data(X, k+1)
         
@@ -46,7 +46,7 @@ for i in range (3) :
         
         print("\n finished preparing number of char:" + str(k+1))
             
-        C_arr = [2, 1.5, 1, 1e-1, 1e-2, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8]
+        C_arr = [4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 1e-1, 1e-2]
         #C_arr = [0.01]
         
         for C in C_arr:

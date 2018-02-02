@@ -7,11 +7,12 @@ Created on Thu Feb  1 16:45:12 2018
 """
 
 import numpy as np
-import pandas as pd
-from sklearn.metrics import accuracy_score
+
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import make_blobs, make_circles, make_moons
 from sklearn.preprocessing import StandardScaler
 
-from data_prepared import read_data, prepare_data, split_data
 
 class SMO_md:
     
@@ -25,11 +26,11 @@ class SMO_md:
         self._obj = []          
         self.m = len(self.X)    
         
-def kernel(x, y, b=1):
+def kernel_(x, y, b=1):
     #linear_kernel
     return np.dot(x, y.T) + b 
                            
-def kernel_(x, y, sigma=1):
+def kernel(x, y, sigma=1):
     #gaussian_kernel
     if np.ndim(x) == 1 and np.ndim(y) == 1:
         result = np.exp(- np.linalg.norm(x - y) / (2 * sigma ** 2))
@@ -48,6 +49,28 @@ def decision_func(X_tr, Y_tr, Alpha, b, X_te):
     result = (Alpha * Y_tr) @ kernel(X_tr, X_te) - b
     
     return result
+
+def plot_decision_boundary(md, ax, resolution=100, colors=('b', 'k', 'r')):
+
+        xrange = np.linspace(md.X[:,0].min(), md.X[:,0].max(), resolution)
+        yrange = np.linspace(md.X[:,1].min(), md.X[:,1].max(), resolution)
+        grid = [[decision_func(md.X,
+                               md.Y, 
+                               md.Alpha,
+                               md.b,
+                               np.array([xr, yr])) for yr in yrange] for xr in xrange]
+        grid = np.array(grid).reshape(len(xrange), len(yrange))
+        
+        ax.contour(xrange, yrange, grid, (-1, 0, 1), linewidths=(1, 1, 1),
+                   linestyles=('--', '-', '--'), colors=colors)
+        ax.scatter(md.X[:,0], md.X[:,1],
+                   c=md.Y, cmap=plt.cm.viridis, lw=0, alpha=0.5)
+        
+        mask = md.Alpha != 0.0
+        ax.scatter(md.X[:,0][mask], md.X[:,1][mask],
+                   c=md.Y[mask], cmap=plt.cm.viridis)
+        
+        return grid, ax
     
 def takeStep(i, j, md):
     
@@ -191,118 +214,41 @@ def routine(md):
         
     return md
 
+#X_tr, Y_tr = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1)
+X_tr, Y_tr = make_circles(n_samples=500, noise=0.1, factor=0.1, random_state=1)
+scaler = StandardScaler()
+X_tr_scaled = scaler.fit_transform(X_tr, Y_tr)
 
-def predict(md, X_te):
-    
-    Y_predicted = []
-    for i, x_i in enumerate(X_test):
-        result = decision_func(md.X_tr, md.Y_tr, md.Alpha, md.b, X_te)
-        if result <=0 :
-            Y_predicted.append(-1)
-        else:
-            Y_predicted.append(1)
-    return Y_predicted.astype(float).tolist()
-    
+Y_tr[Y_tr == 0] = -1
 
-isTr = 1
-for i in range (3) :
-    
-    X = read_data("Xtr"+str(i), isTr)
-    Y = read_data("Ytr"+str(i), isTr)
-    
-    max_info = ""
-    max_predic = 0
-    
-    Y['Bound'][Y['Bound'] == 0] = -1
-     
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")       
-    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")   
-    
-    print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
-    
-    for k in range(2,7):
-        
-        data_new = prepare_data(X, k+1)
-        
-        data_new['Bound'] = Y['Bound']
-        
-        data_train,  data_test = split_data(data_new, 70)
-        
-        X_train = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
-        Y_tr = pd.DataFrame.as_matrix(data_train['Bound']).astype(float).tolist()
-        
-        scaler = StandardScaler()
-        X_tr = scaler.fit_transform(X_train, Y_tr)
-        
-        X_test = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
-        Y_te = pd.DataFrame.as_matrix(data_test['Bound']).astype(float).tolist()
-        
-        X_te = scaler.fit_transform(X_test, Y_te)
-        
-        m = len(X_tr)
-        initial_Alpha = np.zeros(m)
-        initial_Error =  np.zeros(m)
-        initial_b = 0.0
-        
-        tol = 0.01 
-        eps = 0.01 
-        
-        print("\n finished preparing number of char:" + str(k+1))
-            
-        #C_arr = [4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 1e-1, 1e-2]
-        C_arr = [10000, 1000, 100, 10, 5, 1, 0.01]
-        
-        for C in C_arr:
-            
-                # Instantiate model
-                md = SMO_md(X_tr,
-                            Y_tr, 
-                            C, 
-                            initial_Alpha, 
-                            initial_Error,
-                            initial_b,
-                            m)            
-                
-                initial_Error = decision_func(md.X, md.Y, md.Alpha, md.b, md.X) - md.Y
-                md.Error = initial_Error
-                
-                output_md = routine(md)
-                
-                Y_predicted_tr = predict(output_md, X_tr)
-                Y_predicted_te = predict(output_md, X_te)
-    
-                predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
-                predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
-                
-                st_info = "\n test on Xtr" + str(i) + ", Ytr" + str(i)+\
-                          "\n C: " +str(C) +\
-                          "\n number of character: " + str(k+1)
-                 
-                if(predicted_score_te > max_predic):
-                    max_predic = predicted_score_te
-                    max_info = "\n max_result_tr: "+ str(predicted_score_tr) + st_info  + "\n"
-                
-                f.write("---------------------------------------")
-                f.write(st_info)
-                
-                f.write("\n result_tr: " 
-                      + str(accuracy_score(Y_predicted_tr, Y_tr, normalize=False)) + 
-                      "/" + str(len(Y_predicted_tr)) 
-                      + " = " + str(predicted_score_tr))
-                
-                f.write("\n result_te: " 
-                      + str(accuracy_score(Y_predicted_te, Y_te, normalize=False)) + 
-                      "/" + str(len(Y_predicted_te))
-                      + " = " + str(predicted_score_te) + "\n\n")
-                
-    f.write("****************************************************************************************************************")
-    f.write("\n max_result_te: " + str(max_predic))
-    f.write(max_info + "\n\n")
-    f.close()
-    break
+# Set model parameters and initial values
+C = 20
+m = len(X_tr_scaled)
+initial_Alpha = np.zeros(m)
+initial_Error =  np.zeros(m)
+initial_b = 0.0
+
+# Set tolerances
+tol = 0.01 
+eps = 0.01 
+
+# Instantiate model
+md = SMO_md(X_tr_scaled,
+            Y_tr, 
+            C, 
+            initial_Alpha, 
+            initial_Error,
+            initial_b,
+            m)
+
+initial_Error = decision_func(md.X, md.Y, md.Alpha, md.b, md.X) - md.Y
+md.Error = initial_Error
 
 
-
+output = routine(md)
+fig, ax = plt.subplots()
+grid, ax = plot_decision_boundary(output, ax)
+m
 
 
 
