@@ -50,10 +50,10 @@ def prepare_data(X, num_char):
                     df.loc[index][n] = df.loc[index][n]+1
                     break
                         
-        for n in col_name:
-            df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
+        #for n in col_name:
+        #   df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
         
-        #if (index == 20):
+        #if (index == 299):
         #   break     
     
     return df    
