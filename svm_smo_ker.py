@@ -16,23 +16,22 @@ from sklearn.preprocessing import StandardScaler
 
 class SMO_md:
     
-    def __init__(self, X, Y, C, Alpha, Error, kernel, b):
+    def __init__(self, X, Y, C, Alpha, Error, b, m):
         self.X = X               
         self.Y = Y              
         self.C = C               
-        self.kernel = kernel     
-        self.Alphas = Alpha    
+        self.Alpha = Alpha    
         self.b = b               
         self.Error = Error     
         self._obj = []          
         self.m = len(self.X)    
         
-def linear_kernel(x, y, b=1):
-    
-    return np.dot(x, y) + b 
+def kernel_(x, y, b=1):
+    #linear_kernel
+    return np.dot(x, y.T) + b 
                            
-def gaussian_kernel(x, y, sigma=1):
-
+def kernel(x, y, sigma=1):
+    #gaussian_kernel
     if np.ndim(x) == 1 and np.ndim(y) == 1:
         result = np.exp(- np.linalg.norm(x - y) / (2 * sigma ** 2))
     elif (np.ndim(x) > 1 and np.ndim(y) == 1) or (np.ndim(x) == 1 and np.ndim(y) > 1):
@@ -41,13 +40,14 @@ def gaussian_kernel(x, y, sigma=1):
         result = np.exp(- np.linalg.norm(x[:, np.newaxis] - y[np.newaxis, :], axis=2) / (2 * sigma ** 2))
     return result
 
-def obj_func(X, Y, Alpha, kernel):
+def obj_func(X, Y, Alpha):
     
     return np.sum(Alpha) - 0.5 * np.sum(Y * Y * kernel(X, X) * Alpha * Alpha)                               
 
-def decision_func(X_tr, Y_tr, Alpha, kernel, b, X_te):
-    
+def decision_func(X_tr, Y_tr, Alpha, b, X_te):
+    kernel(X_tr, X_te)
     result = (Alpha * Y_tr) @ kernel(X_tr, X_te) - b
+    
     return result
 
 def plot_decision_boundary(md, ax, resolution=100, colors=('b', 'k', 'r')):
@@ -57,7 +57,6 @@ def plot_decision_boundary(md, ax, resolution=100, colors=('b', 'k', 'r')):
         grid = [[decision_func(md.X,
                                md.Y, 
                                md.Alpha,
-                               md.kernel,
                                md.b,
                                np.array([xr, yr])) for yr in yrange] for xr in xrange]
         grid = np.array(grid).reshape(len(xrange), len(yrange))
@@ -76,7 +75,7 @@ def plot_decision_boundary(md, ax, resolution=100, colors=('b', 'k', 'r')):
 def takeStep(i, j, md):
     
     if (i == j):
-        return 0
+        return 0, md
     
     alp_i = md.Alpha[i]
     alp_j = md.Alpha[j]
@@ -94,11 +93,11 @@ def takeStep(i, j, md):
         H = min(md.C, alp_i + alp_j)
       
     if (L == H):
-        return 0 
+        return 0, md
     
-    k_ij = md.kernel(md.X[i], md.X[j])
-    k_ii = md.kernel(md.X[i], md.X[i])
-    k_jj = md.kernel(md.X[j], md.X[j])
+    k_ij = kernel(md.X[i], md.X[j])
+    k_ii = kernel(md.X[i], md.X[i])
+    k_jj = kernel(md.X[j], md.X[j])
     
     eta = k_ii + k_jj - 2 * k_ij
 
@@ -114,10 +113,10 @@ def takeStep(i, j, md):
         alp_cp = md.Alpha.copy()
         
         alp_cp[j] = L
-        Lobj =  obj_func(md.X, md.Y, alp_cp, md.kernel) 
+        Lobj =  obj_func(md.X, md.Y, alp_cp) 
         
         alp_cp[j] = H
-        Hobj =  obj_func(md.X, md.Y, alp_cp, md.kernel) 
+        Hobj =  obj_func(md.X, md.Y, alp_cp) 
         
         if Lobj > (Hobj + eps):
             alp_j_new = L
@@ -127,7 +126,7 @@ def takeStep(i, j, md):
             alp_j_new = alp_j
             
     if (abs(alp_j_new - alp_j) < eps*(alp_j_new+alp_j+eps)):
-        return 0
+        return 0, md
 
     alp_i_new = alp_i + s*(alp_j - alp_j_new)
             
@@ -150,12 +149,12 @@ def takeStep(i, j, md):
     
     non_opt = [n for n in range(md.m) if (n != i and n != j)]
     md.Error[non_opt] = md.Error[non_opt] + \
-                            y_i*(alp_i_new - alp_i)*md.kernel(md.X[i], md.X[non_opt]) + \
-                            y_j*(alp_i_new - alp_i)*md.kernel(md.X[j], md.X[non_opt]) + md.b - b_new
+                            y_i*(alp_i_new - alp_i)*kernel(md.X[i], md.X[non_opt]) + \
+                            y_j*(alp_j_new - alp_j)*kernel(md.X[j], md.X[non_opt]) + md.b - b_new
     
     md.b = b_new
     
-    return 1
+    return 1, md
 
 def examineExample(j, md):
     
@@ -180,8 +179,7 @@ def examineExample(j, md):
             step_result, md = takeStep(i, j, md)
             if step_result:
                 return 1, md
-        
-        for i1 in np.roll(np.arange(md.m), np.random.choice(np.arange(md.m))):
+        for i in np.roll(np.arange(md.m), np.random.choice(np.arange(md.m))):
             step_result, md = takeStep(i, j, md)
             if step_result:
                 return 1, md
@@ -196,18 +194,18 @@ def routine(md):
     while(numChanged > 0) or (examineAll):
         numChanged = 0
         if examineAll:
-            for i in range(md.Alpha.shape[0]):
-                examine_result, md = examineExample(i, md)
+            for j in range(md.Alpha.shape[0]):
+                examine_result, md = examineExample(j, md)
                 numChanged += examine_result
                 if examine_result:
-                    obj_result = obj_func(md.X, md.Y, md.Alpha, md.kernel)
+                    obj_result = obj_func(md.X, md.Y, md.Alpha)
                     md._obj.append(obj_result)
         else:
-            for i in np.where((md.Alpha != 0) & (md.Alpha != md.C))[0]:
-                examine_result, md = examineExample(i, md)
+            for j in np.where((md.Alpha != 0) & (md.Alpha != md.C))[0]:
+                examine_result, md = examineExample(j, md)
                 numChanged += examine_result
                 if examine_result:
-                    obj_result = obj_func(md.X, md.Y, md.Alpha, md.kernel)
+                    obj_result = obj_func(md.X, md.Y, md.Alpha)
                     md._obj.append(obj_result)
         if examineAll == 1:
             examineAll = 0
@@ -216,17 +214,18 @@ def routine(md):
         
     return md
 
-X_tr, Y_tr = make_blobs(n_samples=1000, centers=2,
-                        n_features=2, random_state=1)
+#X_tr, Y_tr = make_blobs(n_samples=1000, centers=2, n_features=2, random_state=1)
+X_tr, Y_tr = make_circles(n_samples=500, noise=0.1, factor=0.1, random_state=1)
 scaler = StandardScaler()
 X_tr_scaled = scaler.fit_transform(X_tr, Y_tr)
 
 Y_tr[Y_tr == 0] = -1
 
 # Set model parameters and initial values
-C = 1000.0
+C = 10
 m = len(X_tr_scaled)
 initial_Alpha = np.zeros(m)
+initial_Error =  np.zeros(m)
 initial_b = 0.0
 
 # Set tolerances
@@ -238,13 +237,11 @@ md = SMO_md(X_tr_scaled,
             Y_tr, 
             C, 
             initial_Alpha, 
-            
-            linear_kernel,
+            initial_Error,
             initial_b,
-            np.zeros(m))
+            m)
 
-initial_Error = decision_func(md.X, md.Y, md.Alpha,
-                                  md.kernel, md.b, md.X) - md.Y
+initial_Error = decision_func(md.X, md.Y, md.Alpha, md.b, md.X) - md.Y
 md.Error = initial_Error
 
 
