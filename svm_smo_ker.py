@@ -40,11 +40,9 @@ def kernel_(x, y, sigma=1):
     return result
 
 def obj_func(X, Y, Alpha):
-    
     return np.sum(Alpha) - 0.5 * np.sum(Y * Y * kernel(X, X) * Alpha * Alpha)                               
 
 def decision_func(X_tr, Y_tr, Alpha, b, X_te):
-    kernel(X_tr, X_te)
     result = (Alpha * Y_tr) @ kernel(X_tr, X_te) - b
     
     return result
@@ -194,14 +192,16 @@ def routine(md):
 
 def predict(md, X_te):
     
+    #print("b: " + str(md.b))
     Y_predicted = []
-    for i, x_i in enumerate(X_test):
-        result = decision_func(md.X_tr, md.Y_tr, md.Alpha, md.b, X_te)
+    for i, x_i in enumerate(X_te):
+        #print("sum: " + str(np.sum((md.Alpha * md.Y) @ kernel(md.X, x_i))))
+        result = np.sum((md.Alpha * md.Y) @ kernel(md.X, x_i)) - md.b
         if result <=0 :
             Y_predicted.append(-1)
-        else:
+        elif result > 0:
             Y_predicted.append(1)
-    return Y_predicted.astype(float).tolist()
+    return Y_predicted
     
 
 isTr = 1
@@ -215,8 +215,8 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")       
-    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")   
+    #f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")       
+    f= open("/home/jibril/Desktop/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")   
     
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
@@ -228,16 +228,16 @@ for i in range (3) :
         
         data_train,  data_test = split_data(data_new, 70)
         
-        X_train = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
-        Y_tr = pd.DataFrame.as_matrix(data_train['Bound']).astype(float).tolist()
+        X_tr = np.asarray(pd.DataFrame.as_matrix(data_train.iloc[:,:-1]), dtype=float)
+        Y_tr = pd.DataFrame.as_matrix(data_train['Bound'])
         
-        scaler = StandardScaler()
-        X_tr = scaler.fit_transform(X_train, Y_tr)
+        #scaler = StandardScaler()
+        #X_tr = scaler.fit_transform(X_tr, Y_tr)
         
-        X_test = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
-        Y_te = pd.DataFrame.as_matrix(data_test['Bound']).astype(float).tolist()
+        X_te = np.asarray(pd.DataFrame.as_matrix(data_test.iloc[:,:-1]), dtype=float)
+        Y_te = pd.DataFrame.as_matrix(data_test['Bound'])
         
-        X_te = scaler.fit_transform(X_test, Y_te)
+        #X_te = scaler.fit_transform(X_te, Y_te)
         
         m = len(X_tr)
         initial_Alpha = np.zeros(m)
@@ -270,7 +270,10 @@ for i in range (3) :
                 
                 Y_predicted_tr = predict(output_md, X_tr)
                 Y_predicted_te = predict(output_md, X_te)
-    
+                
+                
+                #Y_tr = [float(i) for i in Y_tr]
+                #Y_te = [float(i) for i in Y_te]
                 predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
                 predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
                 
