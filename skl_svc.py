@@ -23,7 +23,7 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_skl_svc.txt","a+")       
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_skl_svc_linear.txt","a+")       
     
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
@@ -50,7 +50,7 @@ for i in range (3) :
         for C in C_arr:
             
             SVC(C=C, cache_size=200, class_weight=None, coef0=0.0,
-                   decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
+                   decision_function_shape='ovr', degree=3, gamma='auto', kernel='linear',
                    max_iter=-1, probability=False, random_state=None, shrinking=True,
                    tol=0.001, verbose=False)
             clf = SVC()

@@ -53,7 +53,7 @@ def prepare_data(X, num_char):
         #for n in col_name:
         #   df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
         
-        #if (index == 299):
+        #if (index == 499):
         #   break     
     
     return df    

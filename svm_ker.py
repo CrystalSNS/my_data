@@ -11,11 +11,12 @@ import numpy as np
 import cvxopt
 #from cvxopt import matrix, solvers 
 #from cvxopt.solvers import qp
-def kernel_(x, y, z):
+
+def kernel(x, y, z):
     #degree-2 polynomials
     return (np.dot(x, y) + z)**2
 
-def kernel(x, y, sigma):
+def kernel_(x, y, sigma):
 
     if np.ndim(x) == 1 and np.ndim(y) == 1:
         result = np.exp(- np.linalg.norm(x - y) / (2 * sigma ** 2))
@@ -23,12 +24,9 @@ def kernel(x, y, sigma):
         result = np.exp(- np.linalg.norm(x - y, axis=1) / (2 * sigma ** 2))
     elif np.ndim(x) > 1 and np.ndim(y) > 1:
         result = np.exp(- np.linalg.norm(x[:, np.newaxis] - y[np.newaxis, :], axis=2) / (2 * sigma ** 2))
-    return result
-"""Returns the gaussian similarity of arrays `x` and `y` with
-kernel width parameter `sigma` (set to 1 by default)."""
-                 
+    return result                 
 
-def svm_f(X_tr, Y_tr, C, z):
+def svm_ker_func(X_tr, Y_tr, C, z):
     
     n_examples = X_tr.shape[0]
     

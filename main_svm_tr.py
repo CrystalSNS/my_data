@@ -13,11 +13,11 @@ from data_prepared import read_data, prepare_data, split_data
 from testing import test_ker
 #from svm import svm_f
 #from  svm_smo_ker import smo_ker_f
-from svm_ker import svm_f
+from svm_ker import svm_ker_func
 
 
 isTr = 1
-for i in range (3) :
+for i in range (2,3) :
     X = read_data("Xtr"+str(i), isTr)
     Y = read_data("Ytr"+str(i), isTr)
     max_info = ""
@@ -26,7 +26,7 @@ for i in range (3) :
     Y['Bound'][Y['Bound'] == 0] = -1
      
     f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_ker_gaussi_C_big.txt","a+")       
-    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm.txt","a+")   
+    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm_ker_gaussi.txt","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
     for k in range(2,7):
@@ -46,14 +46,14 @@ for i in range (3) :
         
         print("\n finished preparing number of char:" + str(k+1))
             
-        C_arr = [4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 1e-1, 1e-2]
+        C_arr = [ 2.5, 2, 1.5, 1, 0.9, 0.7, 0.6, 0.5, 0.2, 0.1, 1e-2]
         #C_arr = [0.01]
         
         for C in C_arr:
             
             for z in range(1, 4):
             
-                alpha, b = svm_f(X_tr, Y_tr, C, z) 
+                alpha, b = svm_ker_func(X_tr, Y_tr, C, z) 
                 #alpha, b = smo_ker_f(X_tr, Y_tr, 1000, 1e-4, C)
         
                 Y_predicted_tr = test_ker(X_tr, Y_tr, X_tr, alpha, b, z)

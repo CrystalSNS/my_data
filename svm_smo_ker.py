@@ -25,10 +25,12 @@ class SMO_md:
         self._obj = []          
         self.m = len(self.X)    
         
-def kernel(x, y, b=1):
+def kernel__(x, y, b=1):
     #linear_kernel
     return np.dot(x, y.T) + b 
-                           
+def kernel(x, y, z=1):
+    #degree-2 polynomials
+    return (np.dot(x, y.T) + z)**2                           
 def kernel_(x, y, sigma=1):
     #gaussian_kernel
     if np.ndim(x) == 1 and np.ndim(y) == 1:
@@ -58,7 +60,7 @@ def takeStep(i, j, md):
     y_j = md.Y[j]
     E_i = md.Error[i]
     E_j = md.Error[j]
-    s = y_i*y_j
+    s = y_i * y_j
     
     if (y_i != y_j):
         L = max(0, alp_j - alp_i)
@@ -74,10 +76,10 @@ def takeStep(i, j, md):
     k_ii = kernel(md.X[i], md.X[i])
     k_jj = kernel(md.X[j], md.X[j])
     
-    eta = k_ii + k_jj - 2 * k_ij
-
-    if (eta >= 0):
-        alp_j_new = alp_j + y_j * (E_i - E_j) / eta
+    eta = 2 * k_ij - k_ii - k_jj 
+    #print("eta: " +str(eta))
+    if (eta < 0):
+        alp_j_new = alp_j - y_j * (E_i - E_j) / eta
         if (alp_j_new >= H):
             alp_j_new = H
         elif L < alp_j_new < H :
@@ -92,6 +94,9 @@ def takeStep(i, j, md):
         
         alp_cp[j] = H
         Hobj =  obj_func(md.X, md.Y, alp_cp) 
+        #print("H: "+str(H))
+        #print("L: "+str(L))
+        
         
         if Lobj > (Hobj + eps):
             alp_j_new = L
@@ -99,14 +104,20 @@ def takeStep(i, j, md):
             alp_j_new = H
         else:
             alp_j_new = alp_j
-            
-    if (abs(alp_j_new - alp_j) < eps*(alp_j_new+alp_j+eps)):
+    #print("alp_j_new: "+str(alp_j_new))
+    
+    if alp_j_new < 1e-8:
+        alp_j_new = 0.0
+    elif alp_j_new > (md.C - 1e-8):
+        alp_j_new = md.C
+        
+    if (abs(alp_j_new - alp_j) < eps * ( alp_j_new + alp_j + eps )):
         return 0, md
 
-    alp_i_new = alp_i + s*(alp_j - alp_j_new)
+    alp_i_new = alp_i + s * (alp_j - alp_j_new)
             
-    b_i = E_i + (y_i * (alp_i_new - alp_i) * k_ii) + (y_j * (alp_j_new - alp_j) * k_ij)
-    b_j = E_j + (y_i * (alp_i_new - alp_i) * k_ij) + (y_j * (alp_j_new - alp_j) * k_jj)
+    b_i = E_i + y_i * (alp_i_new - alp_i) * k_ii + y_j * (alp_j_new - alp_j) * k_ij + md.b
+    b_j = E_j + y_i * (alp_i_new - alp_i) * k_ij + y_j * (alp_j_new - alp_j) * k_jj + md.b
     
     if 0 < alp_i_new and alp_i_new < md.C:
         b_new = b_i
@@ -192,11 +203,17 @@ def routine(md):
 
 def predict(md, X_te):
     
-    #print("b: " + str(md.b))
+    print("b: " + str(md.b))
+    for ap in md.Alpha:
+        
+        print("alpha: " + str(ap))
+    
+        
     Y_predicted = []
     for i, x_i in enumerate(X_te):
-        #print("sum: " + str(np.sum((md.Alpha * md.Y) @ kernel(md.X, x_i))))
-        result = np.sum((md.Alpha * md.Y) @ kernel(md.X, x_i)) - md.b
+       # print("sum: " + str(np.sum((md.Alpha * md.Y) * kernel(md.X, x_i))))
+        result = np.sum((md.Alpha * md.Y) * kernel(md.X, x_i)) - md.b
+        #print("result: " + str(result))
         if result <=0 :
             Y_predicted.append(-1)
         elif result > 0:
@@ -215,12 +232,12 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    #f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")       
-    f= open("/home/jibril/Desktop/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")   
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")       
+    #f= open("/home/jibril/Desktop/data_challenge/result/console_svm_SMO_ker_linear.txt","a+")   
     
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
-    for k in range(2,7):
+    for k in range(2,3):
         
         data_new = prepare_data(X, k+1)
         
@@ -250,7 +267,8 @@ for i in range (3) :
         print("\n finished preparing number of char:" + str(k+1))
             
         #C_arr = [4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 1e-1, 1e-2]
-        C_arr = [10000, 1000, 100, 10, 5, 1, 0.01]
+        #C_arr = [10000, 1000, 100, 10, 5, 1, 0.01]
+        C_arr = [0.1]
         
         for C in C_arr:
             
@@ -272,8 +290,8 @@ for i in range (3) :
                 Y_predicted_te = predict(output_md, X_te)
                 
                 
-                #Y_tr = [float(i) for i in Y_tr]
-                #Y_te = [float(i) for i in Y_te]
+                Y_tr = [float(i) for i in Y_tr]
+                Y_te = [float(i) for i in Y_te]
                 predicted_score_tr = accuracy_score(Y_predicted_tr, Y_tr, normalize=False)/len(Y_predicted_tr)
                 predicted_score_te = accuracy_score(Y_predicted_te, Y_te, normalize=False)/len(Y_predicted_te)
                 

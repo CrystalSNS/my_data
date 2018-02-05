@@ -62,11 +62,11 @@ def test_ker_id(X_tr, Y_tr, X_te, alpha):
             result.loc[i]['Bound'] = 1
     return result
 
-def kernel_(x, y, z):
+def kernel(x, y, z):
     #degree-2 polynomials
     return (np.dot(x, y) + z)**2
 
-def kernel(x, y, sigma):
+def kernel_(x, y, sigma):
 
     if np.ndim(x) == 1 and np.ndim(y) == 1:
         result = np.exp(- np.linalg.norm(x - y) / (2 * sigma ** 2))
