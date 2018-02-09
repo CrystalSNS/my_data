@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from data_prepared import read_data, prepare_data, split_data
+from data_prepared import read_data, prepare_data_div, prepare_data_no_div, split_data
 from pegasos import pegasos_
 from svm_ker import svm_ker_func
 
@@ -62,9 +62,7 @@ def final_predict(Y_all, Alpha):
 #def adaboost_func():
     
 isTr = 1
-#lmda = [1e-05, 1e-04, 1e-05]
-#epoch = [400000, 300000, 500000]
-#num_char = [6, 6, 5]
+
 
 
 
@@ -80,48 +78,64 @@ Y['Bound'][Y['Bound'] == 0] = -1
 print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
 
 
-num_char = 5
 
-data_new = prepare_data(X, num_char)
+X['Bound'] = Y['Bound']
 
-data_new['Bound'] = Y['Bound']
+data_train,  data_test = split_data(X, 70)
 
-data_train,  data_test = split_data(data_new, 70)
-
-X_tr = pd.DataFrame.as_matrix(data_train.iloc[:,:-1])
+X_train = data_train.iloc[:,:-1]
 Y_tr = pd.DataFrame.as_matrix(data_train['Bound']).astype(float).tolist()
 
-X_te = pd.DataFrame.as_matrix(data_test.iloc[:,:-1])
+X_test = data_test.iloc[:,:-1]
 Y_te = pd.DataFrame.as_matrix(data_test['Bound']).astype(float).tolist()
 
-D =  1/len(X_tr)
 
-epsl = 0
-Z = 0
+#num_char = 5
+
 Alpha = []
-Y_all_tr = []
 Y_all_te = []
+Y_all_tr = []
 
-for t in range(2):
-    if (t == 0):
-        lmda = 1e-05
-        epoch = 500000
-        print("... is training on classifier pegasos")
-        #based-classifier
-        w, b = pegasos_(X_tr, Y_tr, lmda, epoch)
-        
-        Y_pre_tr = predict_pegasos(w, b, X_tr)
-        Y_pre_te = predict_pegasos(w, b, X_te)
-        
-        predicted_sco_tr = accuracy_score(Y_pre_tr, Y_tr, normalize=False)/len(Y_pre_tr)
-        print("predicted_score_tr:"+str(predicted_sco_tr))
-        
-        predicted_sco_te = accuracy_score(Y_pre_te, Y_te, normalize=False)/len(Y_pre_te)
-        print("predicted_score_te:"+str(predicted_sco_te))
+D = 0
+epoch = [500000, 400000, 400000, 300000, 200000, 500000]
+lmda = [1e-05, 1e-05, 0.0001, 0.0001, 0.0001, 1e-05 ]
+num_char = [5, 5, 5, 5, 5, 6]
+
+for t in range(5):
+    
+    epsl = 0
+    Z = 0
+
+    print("... is training on classifier pegasos"+str(t))
+    X_tr = prepare_data_div(X_train, num_char[t])
+    X_tr = pd.DataFrame.as_matrix(X_tr)
+    D = 1/len(X_tr)
+    
+    X_te = prepare_data_div(X_test, num_char[t])
+    X_te = pd.DataFrame.as_matrix(X_te)
+    
+    #based-classifier
+    w, b = pegasos_(X_tr, Y_tr, lmda[t], epoch[t])
+    
+    Y_pre_tr = predict_pegasos(w, b, X_tr)
+    Y_pre_te = predict_pegasos(w, b, X_te)
+    
+    predicted_sco_tr = accuracy_score(Y_pre_tr, Y_tr, normalize=False)/len(Y_pre_tr)
+    print("predicted_score_tr:"+str(predicted_sco_tr))
+    
+    predicted_sco_te = accuracy_score(Y_pre_te, Y_te, normalize=False)/len(Y_pre_te)
+    print("predicted_score_te:"+str(predicted_sco_te))
+    
+    '''
     elif (t == 1):
         C = 0.1
         z = 1
-        print("... is training on classifier svm - egree-2 polynomials kernel")
+        print("... is training on classifier svm - degree-2 polynomials kernel")
+        X_tr = prepare_data_no_div(X_train, numchar)
+        X_tr = pd.DataFrame.as_matrix(X_tr)
+        
+        X_te = prepare_data_no_div(X_test, numchar)
+        X_te = pd.DataFrame.as_matrix(X_te)
         #based-classifier
         alpha, b = svm_ker_func(X_tr, Y_tr, C, z)
         
@@ -133,7 +147,7 @@ for t in range(2):
         
         predicted_sco_te = accuracy_score(Y_pre_te, Y_te, normalize=False)/len(Y_pre_te)
         print("predicted_score_te:"+str(predicted_sco_te))
-        
+    '''    
     # Get the error epsilon over the miss-classified 
     num_err = 0
     for idx, y in enumerate(Y_tr):
@@ -141,7 +155,7 @@ for t in range(2):
             epsl = epsl + D
             num_err = num_err + 1
     print("num_err:"+str(num_err)+"\n")
-    if(epsl != 0):
+    if(num_err != 0):
         
         Y_all_tr.append(Y_pre_tr)
         Y_all_te.append(Y_pre_te)

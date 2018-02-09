@@ -32,7 +32,7 @@ def creat_col_name(r):
     return arr
 
 #count the # of char occured in the sequence and devided by len 
-def prepare_data(X, num_char):
+def prepare_data_div(X, num_char):
 
     df = pd.DataFrame(columns = creat_col_name(num_char))
     col_name = list(df)
@@ -50,8 +50,32 @@ def prepare_data(X, num_char):
                     df.loc[index][n] = df.loc[index][n]+1
                     break
                         
-        #for n in col_name:
-        #   df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
+        for n in col_name:
+           df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
+        
+        #if (index == 499):
+        #   break     
+    
+    return df 
+
+#count the # of char occured in the sequence 
+def prepare_data_no_div(X, num_char):
+
+    df = pd.DataFrame(columns = creat_col_name(num_char))
+    col_name = list(df)
+    for index, row in X.iterrows():
+        ln = len(row['DNA'])
+        df.loc[index] = 0
+        for i in range(ln-num_char+1):
+            s = str(row['DNA'])
+            for n in col_name:
+                st = ""
+                for t in range(num_char):
+                    st = st + s[i+t]
+                    
+                if(st == n):
+                    df.loc[index][n] = df.loc[index][n]+1
+                    break
         
         #if (index == 499):
         #   break     

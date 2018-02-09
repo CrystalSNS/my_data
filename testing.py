@@ -14,7 +14,11 @@ def test(w, b, X_test):
     Y_predicted = []
     
     for i, x in enumerate(X_test):
-        l = np.dot(X_test[i],w) + b
+        l = np.dot(X_test[i],w)[0] + b
+        #print("dot pro:"+str(np.dot(X_test[i],w)[0]))
+        if (i==5):
+            break
+        #print("l:"+str(l))
         if l <=0 :
             Y_predicted.append(-1)
         else:
@@ -39,20 +43,17 @@ def test_with_id(w, b, X):
             result.loc[i]['Bound'] = 1
     return result
 
-def test_ker_id(X_tr, Y_tr, X_te, alpha):
+def test_ker_id(X_tr, Y_tr, X_te, alpha, b, z):
     
-    X_tr = np.c_[ X_tr, np.ones(X_tr.shape[0])]
-    X_te = np.c_[ X_te, np.ones(X_te.shape[0])]
+    #X_tr = np.c_[ X_tr, np.ones(X_tr.shape[0])]
+    #X_te = np.c_[ X_te, np.ones(X_te.shape[0])]
     X_test = pd.DataFrame.as_matrix(X_te.loc[:, X_te.columns != 'Id'])
     X_train = pd.DataFrame.as_matrix(X_tr.loc[:, X_tr.columns != 'Id'])
     X_te_id = pd.DataFrame.as_matrix(X_te.loc[:,'Id'])
     result = pd.DataFrame(columns = ['Id','Bound'])
     
-    for idx, x in enumerate(X_test):
-        sm = 0
-        for i, q in enumerate(X_train):
-            sm = sm + ((np.dot(x, q) + 1)**2)*Y_tr[i]*alpha[i]
-
+    for i, x_i in enumerate(X_test):
+        sm = np.sum(alpha * Y_tr * kernel(X_train, x_i, z)) - b
         result.loc[i] = 0
         if sm <=0 :
             result.loc[i]['Id'] = X_te_id[i]

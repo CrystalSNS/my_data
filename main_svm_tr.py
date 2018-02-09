@@ -9,7 +9,7 @@ Created on Wed Jan 31 16:00:46 2018
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from data_prepared import read_data, prepare_data, split_data
+from data_prepared import read_data, prepare_data_div, split_data
 from testing import test_ker
 #from svm import svm_f
 #from  svm_smo_ker import smo_ker_f
@@ -31,7 +31,7 @@ for i in range (2,3) :
     
     for k in range(2,7):
         
-        data_new = prepare_data(X, k+1)
+        data_new = prepare_data_div(X, k+1)
         
         data_new['Bound'] = Y['Bound']
         
