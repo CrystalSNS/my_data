@@ -10,15 +10,10 @@ import pandas as pd
 
 def test(w, b, X_test):
     
-    #X_test = np.c_[ X_test, np.ones(X_test.shape[0])]
     Y_predicted = []
     
     for i, x in enumerate(X_test):
-        l = np.dot(X_test[i],w)[0] + b
-        #print("dot pro:"+str(np.dot(X_test[i],w)[0]))
-        if (i==5):
-            break
-        #print("l:"+str(l))
+        l = np.dot(X_test[i],w) + b
         if l <=0 :
             Y_predicted.append(-1)
         else:
