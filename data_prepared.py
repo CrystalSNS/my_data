@@ -41,6 +41,7 @@ def prepare_data_div(X, num_char):
         df.loc[index] = 0
         for i in range(ln-num_char+1):
             s = str(row['DNA'])
+            s =  "<" + str(s) + ">"
             for n in col_name:
                 st = ""
                 for t in range(num_char):
