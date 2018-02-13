@@ -9,7 +9,7 @@ Created on Wed Jan 31 21:03:35 2018
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from data_prepared import read_data, prepare_data_no_div, split_data
+from data_prepared import read_data, prepare_data_div, prepare_data_no_div, split_data
 from pegasos import pegasos_
 from testing import test
 
@@ -23,13 +23,14 @@ for i in range (3) :
     
     Y['Bound'][Y['Bound'] == 0] = -1
      
-    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_pegasos_12_no_div.txt","a+")       
+    f= open("/Users/noch/Documents/workspace/data_challenge/result/console_pegasos_12_div.txt","a+")       
     #f= open("/home/jibril/Desktop/data_challenge/result/console_pegasos_12_div.txt","a+")   
     print("\n testing on Xtr" +str(i)+ ", Ytr" +str(i))
     
     for k in range(4,6):
 
-        data_new = prepare_data_no_div(X, k+1)
+        #data_new = prepare_data_no_div(X, k+1)
+        data_new = prepare_data_div(X, k+1)
         
         data_new['Bound'] = Y['Bound']
         

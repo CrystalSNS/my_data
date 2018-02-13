@@ -22,13 +22,30 @@ def read_data(st, isTr):
     return data
 
 def creat_col_name(r):
-    permu = product("<ATGC>", repeat = r)
+    permu = product("ATGC", repeat = r)
     arr = []
+    
+    #add new
+    sub_permu = product("ATGC", repeat = r-1)
+    for s_val in sub_permu:
+        st_b = ""
+        st_e = ""
+        for i in range(r-1):
+            st_b = st_b + s_val[i]
+            st_e = st_e + s_val[i]
+            
+        st_b = "<" + str(st_b)
+        arr.append(st_b)
+        st_e = str(st_e) + ">"
+        arr.append(st_e)
+    #end add new      
+    
     for val in permu:
         st = ""
         for j in range(r):
             st = st + val[j]
         arr.append(st)
+        
     return arr
 
 #count the # of char occured in the sequence and devided by len 
@@ -41,7 +58,9 @@ def prepare_data_div(X, num_char):
         df.loc[index] = 0
         for i in range(ln-num_char+1):
             s = str(row['DNA'])
+            #add new
             s =  "<" + str(s) + ">"
+            #end add new
             for n in col_name:
                 st = ""
                 for t in range(num_char):
@@ -54,7 +73,7 @@ def prepare_data_div(X, num_char):
         for n in col_name:
            df.loc[index][n] = df.loc[index][n]/(ln-num_char+1)
         
-        #if (index == 499):
+        #if (index == 10):
         #   break     
     
     return df 
@@ -69,7 +88,9 @@ def prepare_data_no_div(X, num_char):
         df.loc[index] = 0
         for i in range(ln-num_char+1):
             s = str(row['DNA'])
+            #add new
             s =  "<" + str(s) + ">"
+            #end add new
             for n in col_name:
                 st = ""
                 for t in range(num_char):
@@ -79,7 +100,7 @@ def prepare_data_no_div(X, num_char):
                     df.loc[index][n] = df.loc[index][n]+1
                     break
         
-        #if (index == 499):
+        #if (index == 5):
         #   break     
     
     return df    
@@ -96,6 +117,9 @@ def prepare_data_bi(X, num_char):
         df.loc[index] = 0
         for i in range(ln-num_char+1):
             s = str(row['DNA'])
+            #add new
+            s =  "<" + str(s) + ">"
+            #end add new
             for n in col_name:
                 st = ""
                 for t in range(num_char):
